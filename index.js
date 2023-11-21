@@ -10,17 +10,38 @@ const orders = require("./server/models/order");
 const carts = require("./server/models/cart");
 
 //other declarations
+const allowedOrigins = [];
 const app = express();
 app.use(bodyParser.json());
 const uri =
   "mongodb+srv://sanjaykmsmoorthy:Sanjay99652@giftshop.jync2qq.mongodb.net/giftshop?retryWrites=true&w=majority";
-
+require("dotenv").config();
 //middle ware
 app.use((req, res, next) => {
+  const origin = req.headers.origin;
   // set headers to allow cross-origin requests
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
+  // console.log(req.headers);
+  // console.log(process.env.ALLOW_ALL_ORIGIN == "true");
+  if (process.env.ALLOW_ALL_ORIGIN == "true") {
+    console.log("all");
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+    res.header("Access-Control-Allow-Credentials", true);
+  } else {
+    // console.log("selected");
+    if (
+      allowedOrigins.indexOf(origin) !== -1 ||
+      !origin ||
+      process.env.ALLOWED_ORIGIN.indexOf(origin) !== -1
+    ) {
+      // console.log("selected in");
+      res.header("Access-Control-Allow-Origin", origin);
+      res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+      res.header("Access-Control-Allow-Headers", "Content-Type");
+      res.header("Access-Control-Allow-Credentials", true);
+    }
+  }
   next();
 });
 
@@ -444,7 +465,7 @@ mongoose
   .then(() => {
     var server = app.listen(8000, () => {
       console.log(
-        "running" + server.address().address + " " + server.address().port
+        "running" + server.address().address + " " + server.address().port,
       );
     });
   });
